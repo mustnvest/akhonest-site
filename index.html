@@ -285,8 +285,8 @@ section{position:relative}
 
 /* services */
 .svc{margin-top:36px;border-top:1px solid var(--line)}
-.anyapp{margin:26px 0 0;font:italic 400 clamp(34px,5vw,72px)/1.05 var(--f-serif);color:var(--mute)}
-.swap{position:relative;display:inline-grid;vertical-align:bottom;overflow:hidden;padding-bottom:.08em}
+.anyapp{margin:26px 0 0;font:italic 400 calc(var(--fit,1) * clamp(34px,5vw,72px))/1.05 var(--f-serif);color:var(--mute);white-space:nowrap;max-width:100%}
+.swap{position:relative;display:inline-grid;vertical-align:bottom;overflow:hidden;padding-bottom:.08em;min-width:var(--sw,auto);justify-items:start}
 .swap .w{grid-area:1/1;font:400 1.02em/1 var(--f-display);font-style:normal;text-transform:uppercase;white-space:nowrap;background:linear-gradient(100deg,#c99543,#fff1c8 45%,#e8c47c 60%,#9a6a2a);-webkit-background-clip:text;background-clip:text;color:transparent;transform:translateY(105%);transition:transform .6s cubic-bezier(.2,.7,.2,1)}
 .swap .w.on{transform:none}.swap .w.out{transform:translateY(-105%)}
 .apptypes{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
@@ -462,7 +462,7 @@ footer{border-top:1px solid var(--line);padding-block:40px calc(110px + env(safe
   <div class="wrap">
     <p class="eyebrow mono">Hire me</p>
     <h2 class="h2">What I can <i>build for you</i></h2>
-    <p class="anyapp" aria-live="off">I can build your <span class="swap" id="swap"><span class="w on">health app</span></span></p>
+    <p class="anyapp" id="anyapp" aria-live="off"><span class="pre">I can build your</span> <span class="swap" id="swap"><span class="w on">health app</span></span></p>
     <p class="lede"><strong>If it's an app, I can build it.</strong> Health apps, video games, websites, stores, bots, cartoons and full brands. I move fast, so builds that used to take months take weeks. And if you'd rather learn, I'll teach you one-on-one.</p>
     <div class="apptypes" aria-label="Kinds of apps I build"><span>Health &amp; fitness</span><span>Booking</span><span>Finance trackers</span><span>AI assistants</span><span>Online stores</span><span>Learning apps</span><span>Social apps</span><span>Dashboards</span><span>Phone apps</span><span>Browser games</span></div>
     <div class="svc-groups">
@@ -853,7 +853,14 @@ $('sound').onclick=(()=>{let ctx,gain;return()=>{const b=$('sound'),on=b.getAttr
     if(ghost){const r=ghost.parentElement.getBoundingClientRect(),p=(vh-r.top)/(vh+r.height);ghost.style.transform=`translateX(calc(-50% + ${((p-.5)*-14).toFixed(2)}%))`}
     const t=$('#track').getBoundingClientRect(),c=$('#contact').getBoundingClientRect();fl.classList.toggle('show',t.bottom<vh*.5&&c.top>vh*.4)}
   addEventListener('scroll',()=>{if(!tick){tick=true;requestAnimationFrame(frame)}},{passive:true});frame();
-  const sw=$('#swap');if(sw&&!calm){const W=['health app','video game','online store','booking app','trading journal','AI assistant','fitness tracker','whole brand'];let wi=0;
+  const sw=$('#swap'),line=$('#anyapp');const W=['health app','video game','online store','booking app','trading app','fitness app','whole brand','AI assistant'];
+  function fitLine(){if(!sw||!line)return;line.style.setProperty('--fit','1');line.style.removeProperty('--sw');
+    const pr=document.createElement('span');pr.className='w';pr.style.cssText='position:absolute;left:-9999px;top:0;transform:none;visibility:hidden';sw.appendChild(pr);
+    let max=0;W.forEach(w=>{pr.textContent=w;max=Math.max(max,pr.getBoundingClientRect().width)});pr.remove();
+    const pre=line.querySelector('.pre').getBoundingClientRect().width,gap=parseFloat(getComputedStyle(line).fontSize)*.28,avail=line.clientWidth-2;
+    const f=Math.min(1,avail/(pre+gap+max));line.style.setProperty('--fit',f.toFixed(4));line.style.setProperty('--sw',Math.ceil(max*f+2)+'px')}
+  fitLine();(document.fonts&&document.fonts.ready||Promise.resolve()).then(fitLine);addEventListener('resize',fitLine);
+  if(sw&&!calm){let wi=0;
     setInterval(()=>{const cur=sw.querySelector('.w.on');wi=(wi+1)%W.length;const n=document.createElement('span');n.className='w';n.textContent=W[wi];sw.appendChild(n);requestAnimationFrame(()=>{n.classList.add('on');cur.classList.remove('on');cur.classList.add('out')});setTimeout(()=>cur.remove(),700)},2200)}
   const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),1800)};
   $$('[data-copy]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const v=b.dataset.copy;const fall=()=>{const el=b.closest('.ct,[data-copyroot]').querySelector('.val'),r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);toast('Selected, press copy')};try{navigator.clipboard.writeText(v).then(()=>toast('Copied'),fall)}catch(e){fall()}}));
